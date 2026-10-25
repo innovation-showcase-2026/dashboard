@@ -1,0 +1,151 @@
+{
+  "generatedAt": "2026-10-20T08:49:17.983Z",
+  "summitName": "Wells Fargo Technology Summit 2026",
+  "targetRepo": "krishnakumarsabbu-prog/TECH_SUMMIT_RESULT",
+  "stats": {
+    "totalRegisteredParticipants": 1,
+    "totalSubmissionsRecorded": 2,
+    "totalPrizeEligibleAttendees": 0,
+    "summitAverageAccuracy": 0,
+    "totalScoreAwarded": 0,
+    "totalQuestionsAnswered": 10
+  },
+  "boothBreakdown": [
+    {
+      "boothNumber": 1,
+      "boothTitle": "Generative AI & LLMs",
+      "totalAttempts": 2,
+      "averageScore": 0,
+      "averageAccuracy": 0,
+      "averageTimeSeconds": 0
+    },
+    {
+      "boothNumber": 2,
+      "boothTitle": "Cloud Native & Kubernetes",
+      "totalAttempts": 0,
+      "averageScore": 0,
+      "averageAccuracy": 0,
+      "averageTimeSeconds": 0
+    },
+    {
+      "boothNumber": 3,
+      "boothTitle": "Cybersecurity & Zero Trust",
+      "totalAttempts": 0,
+      "averageScore": 0,
+      "averageAccuracy": 0,
+      "averageTimeSeconds": 0
+    },
+    {
+      "boothNumber": 4,
+      "boothTitle": "Data Engineering & Lakehouse",
+      "totalAttempts": 0,
+      "averageScore": 0,
+      "averageAccuracy": 0,
+      "averageTimeSeconds": 0
+    },
+    {
+      "boothNumber": 5,
+      "boothTitle": "DevOps, SRE & CI/CD",
+      "totalAttempts": 0,
+      "averageScore": 0,
+      "averageAccuracy": 0,
+      "averageTimeSeconds": 0
+    },
+    {
+      "boothNumber": 6,
+      "boothTitle": "Software Architecture & APIs",
+      "totalAttempts": 0,
+      "averageScore": 0,
+      "averageAccuracy": 0,
+      "averageTimeSeconds": 0
+    },
+    {
+      "boothNumber": 7,
+      "boothTitle": "IoT & Edge Computing",
+      "totalAttempts": 0,
+      "averageScore": 0,
+      "averageAccuracy": 0,
+      "averageTimeSeconds": 0
+    },
+    {
+      "boothNumber": 8,
+      "boothTitle": "Web3 & Distributed Ledgers",
+      "totalAttempts": 0,
+      "averageScore": 0,
+      "averageAccuracy": 0,
+      "averageTimeSeconds": 0
+    },
+    {
+      "boothNumber": 9,
+      "boothTitle": "Quantum & Emerging Horizons",
+      "totalAttempts": 0,
+      "averageScore": 0,
+      "averageAccuracy": 0,
+      "averageTimeSeconds": 0
+    }
+  ],
+  "lobBreakdown": [
+    {
+      "lob": "Technology / Enterprise Technology",
+      "participantCount": 1,
+      "averageScore": 4,
+      "prizeEligibleCount": 0
+    }
+  ],
+  "leaderboard": [
+    {
+      "rank": 1,
+      "entId": "U825744",
+      "name": "Sabbu",
+      "lob": "Technology / Enterprise Technology",
+      "totalScore": 4,
+      "totalQuestions": 10,
+      "overallAccuracy": 40,
+      "totalTestsAppeared": 2,
+      "isPrizeEligible": false,
+      "lastUpdated": "2026-10-20T08:14:04.261Z"
+    }
+  ],
+  "prizeEligibleWinners": [],
+  "participants": [
+    {
+      "lob": "Technology / Enterprise Technology",
+      "totalScore": 4,
+      "entId": "U825744",
+      "status": "REGISTERED",
+      "registeredAt": "2026-10-20T06:39:44.820Z",
+      "totalTestsAppeared": 2,
+      "company": "Wells Fargo",
+      "overallAccuracy": 40,
+      "name": "Sabbu",
+      "lastUpdated": "2026-10-20T08:14:04.261Z",
+      "tests": [
+        {
+          "boothNumber": 1,
+          "percentage": 60,
+          "timeTakenSeconds": 9,
+          "score": 3,
+          "completedAt": "2026-10-20T06:40:21.554Z",
+          "totalQuestions": 5,
+          "boothTitle": "Generative AI & LLMs",
+          "topicTitle": "Generative AI & Transformer Architectures",
+          "boothId": "booth-1"
+        },
+        {
+          "percentage": 20,
+          "totalQuestions": 5,
+          "boothNumber": 2,
+          "timeTakenSeconds": 18,
+          "score": 1,
+          "boothId": "booth-2",
+          "topicTitle": "Kubernetes Core & Pod Lifecycle",
+          "boothTitle": "Cloud Native & Kubernetes",
+          "completedAt": "2026-10-20T08:14:04.254Z"
+        }
+      ],
+      "totalQuestions": 10,
+      "isPrizeEligible": false,
+      "role": "Summit Attendee"
+    }
+  ]
+}

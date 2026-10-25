@@ -1,0 +1,25 @@
+{
+  "entId": "U825744",
+  "name": "Participant",
+  "lob": "Technology / Enterprise Technology",
+  "registeredAt": "2026-10-14T05:01:10.924Z",
+  "totalTestsAppeared": 1,
+  "totalScore": 1,
+  "totalQuestions": 5,
+  "overallAccuracy": 20,
+  "isPrizeEligible": false,
+  "lastUpdated": "2026-10-14T05:01:10.924Z",
+  "tests": [
+    {
+      "boothId": "booth-1",
+      "boothNumber": 1,
+      "boothTitle": "Generative AI & LLMs",
+      "topicTitle": "Generative AI & Transformer Architectures",
+      "score": 1,
+      "totalQuestions": 5,
+      "percentage": 20,
+      "timeTakenSeconds": 10,
+      "completedAt": "2026-10-14T05:01:08.959Z"
+    }
+  ]
+}

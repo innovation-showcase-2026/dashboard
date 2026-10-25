@@ -1,0 +1,201 @@
+/* Wells Fargo Innovation Showcase 2026 - Pixel-Perfect Executive Theme */
+@import url('https://fonts.googleapis.com/css2?family=Cinzel:wght@700;800&family=JetBrains+Mono:wght@500;600;700&family=Outfit:wght@400;500;600;700;800;900&family=Plus+Jakarta+Sans:wght@400;500;600;700;800&display=swap');
+
+:root {
+  /* Wells Fargo Brand Palette */
+  --wf-red-primary: #D71E28;
+  --wf-red-dark: #B3141E;
+  --wf-crimson-header: #740C15;
+  --wf-crimson-header-dark: #58050C;
+  --wf-crimson-table: #7A0C14;
+  --wf-crimson-card: #800A13;
+
+  /* Accent Gold */
+  --wf-gold: #D4AF37;
+  --wf-gold-bright: #F59E0B;
+  --wf-gold-light: #FDF6E2;
+  --wf-gold-border: #F3DF95;
+  --wf-gold-text: #8A5A00;
+
+  /* Surfaces */
+  --bg-page: #F4F5F8;
+  --bg-card: #FFFFFF;
+  --bg-card-subtle: #FAFAFB;
+  --border-light: #E5E7EB;
+  --border-subtle: #F0F1F3;
+
+  /* Text colors */
+  --text-dark: #1E293B;
+  --text-muted: #64748B;
+  --text-subtle: #94A3B8;
+
+  /* Status Colors */
+  --badge-green-bg: #E6F8EE;
+  --badge-green-text: #0C7A41;
+  --badge-cyan-bg: #E5F6F5;
+  --badge-cyan-text: #177370;
+  --badge-pink-bg: #FCEEEF;
+  --badge-pink-text: #911B1B;
+
+  /* Fonts */
+  --font-sans: 'Plus Jakarta Sans', -apple-system, BlinkMacSystemFont, 'Segoe UI', Roboto, sans-serif;
+  --font-display: 'Outfit', -apple-system, BlinkMacSystemFont, sans-serif;
+  --font-serif: 'Georgia', 'Cinzel', serif;
+  --font-mono: 'JetBrains Mono', monospace;
+
+  /* Shadows */
+  --shadow-card: 0 2px 10px rgba(0, 0, 0, 0.04), 0 1px 3px rgba(0, 0, 0, 0.02);
+  --shadow-elevated: 0 10px 25px -5px rgba(0, 0, 0, 0.08);
+  --shadow-podium: 0 12px 24px rgba(0, 0, 0, 0.25);
+}
+
+* {
+  box-sizing: border-box;
+  margin: 0;
+  padding: 0;
+}
+
+body {
+  font-family: var(--font-sans);
+  background-color: var(--bg-page);
+  color: var(--text-dark);
+  min-height: 100vh;
+  line-height: 1.5;
+  -webkit-font-smoothing: antialiased;
+  -moz-osx-font-smoothing: grayscale;
+}
+
+/* Animations */
+@keyframes pulse-dot {
+  0% { transform: scale(0.9); opacity: 0.8; }
+  50% { transform: scale(1.15); opacity: 1; }
+  100% { transform: scale(0.9); opacity: 0.8; }
+}
+
+.pulsing-green-dot {
+  width: 9px;
+  height: 9px;
+  border-radius: 50%;
+  background-color: #0EA259;
+  display: inline-block;
+  animation: pulse-dot 1.8s infinite ease-in-out;
+}
+
+/* Executive Card */
+.white-card {
+  background: var(--bg-card);
+  border: 1px solid var(--border-light);
+  border-radius: 16px;
+  box-shadow: var(--shadow-card);
+  transition: transform 0.2s ease, box-shadow 0.2s ease;
+}
+
+/* Nav Item styling */
+.nav-item {
+  display: flex;
+  align-items: center;
+  gap: 7px;
+  color: #FFFFFF;
+  text-decoration: none;
+  font-size: 0.84rem;
+  font-weight: 500;
+  padding: 8px 12px;
+  border-radius: 6px;
+  cursor: pointer;
+  position: relative;
+  transition: opacity 0.2s ease;
+}
+.nav-item:hover {
+  opacity: 0.9;
+}
+.nav-item.active {
+  font-weight: 700;
+}
+.nav-item.active::after {
+  content: '';
+  position: absolute;
+  bottom: 0px;
+  left: 12px;
+  right: 12px;
+  height: 2.5px;
+  background-color: #FFFFFF;
+  border-radius: 2px;
+}
+
+/* Status Pill */
+.status-pill {
+  display: inline-flex;
+  align-items: center;
+  gap: 7px;
+  padding: 6px 14px;
+  border-radius: 20px;
+  font-size: 0.77rem;
+  font-weight: 700;
+  letter-spacing: 0.02em;
+}
+
+/* Table */
+.pixel-table {
+  width: 100%;
+  border-collapse: collapse;
+}
+
+.pixel-table thead tr {
+  background-color: var(--wf-crimson-table);
+}
+
+.pixel-table th {
+  color: #FFFFFF;
+  font-size: 0.74rem;
+  font-weight: 700;
+  letter-spacing: 0.06em;
+  text-transform: uppercase;
+  padding: 13px 18px;
+  text-align: left;
+  user-select: none;
+}
+
+.pixel-table th:first-child {
+  border-top-left-radius: 12px;
+}
+
+.pixel-table th:last-child {
+  border-top-right-radius: 12px;
+}
+
+.pixel-table td {
+  padding: 14px 18px;
+  font-size: 0.88rem;
+  color: var(--text-dark);
+  border-bottom: 1px solid var(--border-subtle);
+  vertical-align: middle;
+}
+
+.pixel-table tbody tr {
+  transition: background-color 0.15s ease;
+  cursor: pointer;
+}
+
+.pixel-table tbody tr:hover {
+  background-color: #F8FAFC;
+}
+
+.pixel-table tbody tr:last-child td:first-child {
+  border-bottom-left-radius: 12px;
+}
+.pixel-table tbody tr:last-child td:last-child {
+  border-bottom-right-radius: 12px;
+}
+
+/* Modal Backdrop */
+.modal-overlay {
+  position: fixed;
+  inset: 0;
+  background: rgba(15, 23, 42, 0.65);
+  backdrop-filter: blur(4px);
+  z-index: 1000;
+  display: flex;
+  align-items: center;
+  justify-content: center;
+  padding: 20px;
+}

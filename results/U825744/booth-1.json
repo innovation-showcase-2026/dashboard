@@ -1,0 +1,80 @@
+{
+  "schemaVersion": "1.0",
+  "event": {
+    "eventId": "TECHSUMMIT_2026",
+    "eventName": "Technology Summit"
+  },
+  "submission": {
+    "submissionId": "TS_20261014_050108_3362",
+    "completedAt": "2026-10-14T05:01:08.971Z"
+  },
+  "booth": {
+    "boothId": "booth-1",
+    "boothNumber": 1,
+    "boothTitle": "Generative AI & LLMs",
+    "topicTitle": "Generative AI & Transformer Architectures",
+    "boothsCompletedSoFar": 1,
+    "isPrizeEligible": false
+  },
+  "participant": {
+    "name": "Participant",
+    "entId": "U825744",
+    "lob": "Technology / Enterprise Technology",
+    "company": "Wells Fargo",
+    "role": "Summit Attendee"
+  },
+  "participation": {
+    "deviceId": "6cb05010-3a72-4d9b-a33e-41e267e54e32",
+    "participationKey": "734401090a516bffb83adec1038d8d124b09e0b8051eb0594511679e1f5d41a4",
+    "attemptNumber": 1
+  },
+  "device": {
+    "deviceId": "6cb05010-3a72-4d9b-a33e-41e267e54e32",
+    "userAgent": "Mozilla/5.0 (iPhone; CPU iPhone OS 27_0_1 like Mac OS X) AppleWebKit/605.1.15 (KHTML, like Gecko) CriOS/155.0.8059.37 Mobile/15E148 Safari/604.1",
+    "platform": "iPhone",
+    "language": "en-IN",
+    "timezone": "Asia/Kolkata",
+    "timezoneOffset": -330,
+    "screenWidth": 440,
+    "screenHeight": 956,
+    "devicePixelRatio": 3,
+    "touchSupport": true,
+    "online": true
+  },
+  "quiz": {
+    "score": 1,
+    "totalQuestions": 5,
+    "percentage": 20,
+    "correctAnswers": 1,
+    "incorrectAnswers": 4,
+    "unansweredAnswers": 0,
+    "timeTakenSeconds": 10
+  },
+  "answers": [
+    {
+      "questionId": "b1_t1_q5",
+      "selectedAnswer": "Informing the attention layers about the sequential order of input tokens",
+      "correct": true
+    },
+    {
+      "questionId": "b1_t1_q2",
+      "selectedAnswer": "The maximum token count of the prompt context",
+      "correct": false
+    },
+    {
+      "questionId": "b1_t1_q1",
+      "selectedAnswer": "Recurrent Backpropagation",
+      "correct": false
+    },
+    {
+      "questionId": "b1_t1_q3",
+      "selectedAnswer": "Zero-Shot Chain-of-Thought",
+      "correct": false
+    },
+    {
+      "questionId": "b1_t1_q4",
+      "selectedAnswer": "When an unauthorized user intercepts model prompt tokens",
+      "correct": false
+    }
+  ]
+}
