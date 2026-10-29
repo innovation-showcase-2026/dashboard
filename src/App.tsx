@@ -29,8 +29,8 @@ export const App: React.FC = () => {
       setLastSynced(new Date());
       setDataError(null);
     } catch (error) {
-      const message = error instanceof Error ? error.message : 'Unable to load participants.json';
-      console.error('Local participant data error:', error);
+      const message = error instanceof Error ? error.message : 'Unable to load leaderboard data';
+      console.error('Leaderboard data error:', error);
       setDataError(message);
     } finally {
       setIsLoading(false);

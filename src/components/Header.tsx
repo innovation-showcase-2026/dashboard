@@ -189,7 +189,7 @@ export const Header: React.FC<HeaderProps> = ({
           flexWrap: 'wrap'
         }}
       >
-        {/* Badge 1: Local JSON data source */}
+        {/* Badge 1: Live Leaderboard data source */}
         <div
           className="status-pill"
           style={{
@@ -199,7 +199,7 @@ export const Header: React.FC<HeaderProps> = ({
           }}
         >
           <span className="pulsing-green-dot" />
-          <span>LOCAL JSON DATA</span>
+          <span>LIVE LEADERBOARD SYNC</span>
         </div>
 
         {/* Badge 2: Synced Timestamp */}
