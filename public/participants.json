@@ -1,0 +1,38 @@
+[
+  {
+    "entId": "U825744",
+    "name": "Sabbu",
+    "lob": "Technology / Enterprise Technology",
+    "registeredAt": "2026-10-20T06:39:44.820Z",
+    "totalTestsAppeared": 2,
+    "totalScore": 4,
+    "totalQuestions": 10,
+    "overallAccuracy": 40,
+    "isPrizeEligible": false,
+    "lastUpdated": "2026-10-20T08:14:04.261Z",
+    "tests": [
+      {
+        "boothId": "booth-1",
+        "boothNumber": 1,
+        "boothTitle": "Generative AI & LLMs",
+        "topicTitle": "Generative AI & Transformer Architectures",
+        "score": 3,
+        "totalQuestions": 5,
+        "percentage": 60,
+        "timeTakenSeconds": 9,
+        "completedAt": "2026-10-20T06:40:21.554Z"
+      },
+      {
+        "boothId": "booth-2",
+        "boothNumber": 2,
+        "boothTitle": "Cloud Native & Kubernetes",
+        "topicTitle": "Kubernetes Core & Pod Lifecycle",
+        "score": 1,
+        "totalQuestions": 5,
+        "percentage": 20,
+        "timeTakenSeconds": 18,
+        "completedAt": "2026-10-20T08:14:04.254Z"
+      }
+    ]
+  }
+]

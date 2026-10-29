@@ -8,86 +8,43 @@ import { LobBreakdown } from './components/LobBreakdown';
 import { AttendeeModal } from './components/AttendeeModal';
 import { SkeletonLoader } from './components/SkeletonLoader';
 import { Participant } from './types';
-import { subscribeToParticipants, fetchParticipantsFromServer } from './services/firebase';
-import { INITIAL_MOCK_PARTICIPANTS } from './services/mockData';
+import { fetchParticipants } from './services/participants';
 import { computeKPIs, computeBoothStats, computeLobStats } from './utils/analytics';
-import { WifiOff } from 'lucide-react';
+import { AlertCircle } from 'lucide-react';
 
 export const App: React.FC = () => {
-  const [firestoreParticipants, setFirestoreParticipants] = useState<Participant[]>([]);
+  const [participants, setParticipants] = useState<Participant[]>([]);
   const [isLoading, setIsLoading] = useState<boolean>(true);
-  const [firebaseError, setFirebaseError] = useState<string | null>(null);
+  const [dataError, setDataError] = useState<string | null>(null);
   const [lastSynced, setLastSynced] = useState<Date | null>(null);
-  const [useMockFallback, setUseMockFallback] = useState<boolean>(false);
   const [filterMode, setFilterMode] = useState<'all' | 'prize' | 'lob'>('all');
   const [activeNavTab, setActiveNavTab] = useState<string>('Dashboard');
   const [selectedParticipant, setSelectedParticipant] = useState<Participant | null>(null);
 
-  // Setup real-time listener to Firestore
-  useEffect(() => {
-    setIsLoading(true);
-    setFirebaseError(null);
-
-    const unsubscribe = subscribeToParticipants(
-      (data) => {
-        setFirestoreParticipants(data);
-        setLastSynced(new Date());
-        setIsLoading(false);
-        setFirebaseError(null);
-      },
-      (err) => {
-        console.error("Firestore connection notice:", err);
-        setFirebaseError(err.message || "Unable to connect to Firestore");
-        setIsLoading(false);
-        setUseMockFallback(true);
-      }
-    );
-
-    return () => {
-      unsubscribe();
-    };
-  }, []);
-
-  // Compute active dataset (either pure live Firestore or augmented demo preview)
-  const activeParticipants = useMemo(() => {
-    if (useMockFallback && firestoreParticipants.length === 0) {
-      return INITIAL_MOCK_PARTICIPANTS;
-    }
-    if (useMockFallback && firestoreParticipants.length > 0) {
-      const map = new Map<string, Participant>();
-      INITIAL_MOCK_PARTICIPANTS.forEach(p => map.set(p.entId, p));
-      firestoreParticipants.forEach(p => map.set(p.entId, p));
-      const list = Array.from(map.values());
-      list.sort((a, b) => b.totalScore - a.totalScore);
-      list.forEach((p, idx) => { p.rank = idx + 1; });
-      return list;
-    }
-    return firestoreParticipants;
-  }, [firestoreParticipants, useMockFallback]);
-
-  // Derived metrics
-  const kpis = useMemo(() => computeKPIs(activeParticipants), [activeParticipants]);
-  const boothStats = useMemo(() => computeBoothStats(activeParticipants), [activeParticipants]);
-  const lobStats = useMemo(() => computeLobStats(activeParticipants), [activeParticipants]);
-
-  const handleManualRefresh = useCallback(async () => {
+  const loadParticipants = useCallback(async () => {
     setIsLoading(true);
     try {
-      const freshData = await fetchParticipantsFromServer();
-      setFirestoreParticipants(freshData);
+      const data = await fetchParticipants();
+      setParticipants(data);
       setLastSynced(new Date());
-      setFirebaseError(null);
-    } catch (err: any) {
-      console.error("Manual refresh from Firestore error:", err);
-      setFirebaseError(err.message || "Failed to fetch from Firestore");
+      setDataError(null);
+    } catch (error) {
+      const message = error instanceof Error ? error.message : 'Unable to load participants.json';
+      console.error('Local participant data error:', error);
+      setDataError(message);
     } finally {
       setIsLoading(false);
     }
   }, []);
 
-  const handleToggleMock = useCallback(() => {
-    setUseMockFallback(prev => !prev);
-  }, []);
+  useEffect(() => {
+    void loadParticipants();
+  }, [loadParticipants]);
+
+  // Derived metrics
+  const kpis = useMemo(() => computeKPIs(participants), [participants]);
+  const boothStats = useMemo(() => computeBoothStats(participants), [participants]);
+  const lobStats = useMemo(() => computeLobStats(participants), [participants]);
 
   const handleSelectPrizeWinnersFilter = useCallback(() => {
     setFilterMode('prize');
@@ -114,18 +71,15 @@ export const App: React.FC = () => {
     <div style={{ minHeight: '100vh', display: 'flex', flexDirection: 'column', backgroundColor: '#F4F5F8' }}>
       {/* 1. Deep Burgundy Top Header & 4 Status Pills */}
       <Header
-        participants={activeParticipants}
+        participants={participants}
         lastSynced={lastSynced}
         isLoading={isLoading}
-        onRefresh={handleManualRefresh}
-        usingMockData={useMockFallback}
-        onToggleMockData={handleToggleMock}
+        onRefresh={loadParticipants}
         activeNavTab={activeNavTab}
         onNavTabChange={handleNavTabChange}
       />
 
-      {/* Optional Firebase error notice */}
-      {firebaseError && (
+      {dataError && (
         <div
           style={{
             background: '#FEF2F2',
@@ -139,20 +93,20 @@ export const App: React.FC = () => {
             fontSize: '0.82rem'
           }}
         >
-          <WifiOff size={15} />
-          <span>Firestore offline/notice ({firebaseError}). Showing cached state.</span>
+          <AlertCircle size={15} />
+          <span>Unable to load local participant data: {dataError}</span>
         </div>
       )}
 
       {/* Main Content Area */}
       <main style={{ flex: 1, maxWidth: 1520, width: '100%', margin: '0 auto', padding: '0 32px 48px 32px' }}>
-        {isLoading && firestoreParticipants.length === 0 && !useMockFallback ? (
+        {isLoading && participants.length === 0 ? (
           <SkeletonLoader />
         ) : (
           <>
             {/* 2. Hero Banner: WINNERS & LEADERS 3D Podium */}
             <WinnersHero 
-              topParticipants={activeParticipants} 
+              topParticipants={participants} 
               onSelectParticipant={setSelectedParticipant} 
             />
 
@@ -165,7 +119,7 @@ export const App: React.FC = () => {
             {/* 4. Summit Attendee Leaderboard Card */}
             <div id="leaderboard-section">
               <LeaderboardTable
-                participants={activeParticipants}
+                participants={participants}
                 onSelectParticipant={setSelectedParticipant}
                 filterMode={filterMode}
                 onFilterChange={setFilterMode}
@@ -219,7 +173,7 @@ export const App: React.FC = () => {
             <span style={{ color: '#1E293B', fontWeight: 600 }}>Technology Summit 2026 Innovation Showcase</span>
           </div>
           <div>
-            Real-Time Google Firebase Firestore Synchronized Leaderboard & Competition Telemetry
+            Static JSON Leaderboard & Competition Telemetry
           </div>
         </div>
       </footer>

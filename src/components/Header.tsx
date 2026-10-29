@@ -5,7 +5,6 @@ import {
   Users, 
   BarChart2, 
   Download, 
-  Play, 
   RefreshCw, 
   AlertCircle
 } from 'lucide-react';
@@ -17,8 +16,6 @@ interface HeaderProps {
   lastSynced: Date | null;
   isLoading: boolean;
   onRefresh: () => Promise<void> | void;
-  usingMockData: boolean;
-  onToggleMockData: () => void;
   activeNavTab?: string;
   onNavTabChange?: (tab: string) => void;
 }
@@ -28,8 +25,6 @@ export const Header: React.FC<HeaderProps> = ({
   lastSynced,
   isLoading,
   onRefresh,
-  usingMockData,
-  onToggleMockData,
   activeNavTab = 'Dashboard',
   onNavTabChange
 }) => {
@@ -46,7 +41,7 @@ export const Header: React.FC<HeaderProps> = ({
 
   const formattedTime = lastSynced 
     ? lastSynced.toLocaleTimeString('en-US', { hour12: true, hour: 'numeric', minute: '2-digit', second: '2-digit' }) 
-    : '12:42:35 PM';
+    : 'Not loaded';
 
   const navItems = [
     { label: 'Dashboard', icon: Home },
@@ -142,12 +137,12 @@ export const Header: React.FC<HeaderProps> = ({
                   fontWeight: 500
                 }}
               >
-                Live Summit Analytics • Booths | 9 Competition Telemetry
+                Summit Analytics • Booths | 9 Competition Telemetry
               </p>
             </div>
           </div>
 
-          {/* Right: Navigation Links & Demo Preview Button */}
+          {/* Right: Navigation Links */}
           <div style={{ display: 'flex', alignItems: 'center', gap: 18, flexWrap: 'wrap' }}>
             <nav style={{ display: 'flex', alignItems: 'center', gap: 4 }}>
               {navItems.map((item) => {
@@ -178,29 +173,6 @@ export const Header: React.FC<HeaderProps> = ({
                 );
               })}
             </nav>
-
-            {/* Demo Preview Pill Button */}
-            <button
-              onClick={onToggleMockData}
-              style={{
-                display: 'inline-flex',
-                alignItems: 'center',
-                gap: 7,
-                background: usingMockData ? '#FCD34D' : '#FCEFCB',
-                color: '#2A1805',
-                border: '1px solid #E5D298',
-                borderRadius: 24,
-                padding: '7px 18px',
-                fontSize: '0.84rem',
-                fontWeight: 700,
-                cursor: 'pointer',
-                transition: 'all 0.15s ease',
-                boxShadow: '0 2px 6px rgba(0,0,0,0.08)'
-              }}
-            >
-              <Play size={13} fill="#2A1805" />
-              <span>{usingMockData ? 'Live Data Only' : 'Demo Preview'}</span>
-            </button>
           </div>
         </div>
       </header>
@@ -217,7 +189,7 @@ export const Header: React.FC<HeaderProps> = ({
           flexWrap: 'wrap'
         }}
       >
-        {/* Badge 1: LIVE REAL-TIME FIRESTORE SYNC */}
+        {/* Badge 1: Local JSON data source */}
         <div
           className="status-pill"
           style={{
@@ -227,7 +199,7 @@ export const Header: React.FC<HeaderProps> = ({
           }}
         >
           <span className="pulsing-green-dot" />
-          <span>LIVE REAL-TIME FIRESTORE SYNC</span>
+          <span>LOCAL JSON DATA</span>
         </div>
 
         {/* Badge 2: Synced Timestamp */}
@@ -240,7 +212,7 @@ export const Header: React.FC<HeaderProps> = ({
           }}
         >
           <RefreshCw size={13} color="var(--badge-cyan-text)" strokeWidth={2.4} />
-          <span>Synced: {formattedTime}</span>
+          <span>Loaded: {formattedTime}</span>
         </div>
 
         {/* Badge 3: Active Attendees Counter */}
