@@ -24,6 +24,16 @@ export interface Participant {
   lastUpdated?: string;
   tests?: ParticipantTest[];
   rank?: number;
+  email?: string;
+  completionTime?: string;
+  totalTimeSeconds?: number;
+}
+
+export interface SlotLeaderboard {
+  slot: string;
+  code: string;
+  url: string;
+  participants: Participant[];
 }
 
 export interface BoothDefinition {

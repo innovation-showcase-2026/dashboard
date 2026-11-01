@@ -4,6 +4,26 @@ export const LEADERBOARD_URL =
   import.meta.env.VITE_LEADERBOARD_URL ||
   'https://innovation-showcase-2026.github.io/quiz_sync/data/leaderboard.json';
 
+export const TIME_SLOTS: string[] = [
+  '10:00',
+  '10:30',
+  '11:00',
+  '11:30',
+  '12:00',
+  '12:30',
+  '13:00',
+  '13:30',
+  '14:00',
+  '14:30',
+  '15:00',
+  '15:30',
+  '16:00',
+  '16:30',
+  '17:00',
+  '17:30',
+  '18:00'
+];
+
 function normalizeParticipant(value: unknown, index: number): Participant | null {
   if (typeof value !== 'object' || value === null) return null;
 
@@ -56,12 +76,33 @@ function normalizeParticipant(value: unknown, index: number): Participant | null
 
   const registeredAt = typeof item.registeredAt === 'string' ? item.registeredAt : undefined;
   const lastUpdated = typeof item.lastUpdated === 'string' ? item.lastUpdated : registeredAt;
+  const email = typeof item.email === 'string' ? item.email : undefined;
+
+  const summary =
+    typeof item.summary === 'object' && item.summary !== null
+      ? (item.summary as Record<string, unknown>)
+      : null;
+
+  const completionTime =
+    typeof item.completionTime === 'string' && item.completionTime.trim()
+      ? item.completionTime.trim()
+      : summary && typeof summary.completionTime === 'string' && summary.completionTime.trim()
+        ? summary.completionTime.trim()
+        : undefined;
+
+  const totalTimeSeconds =
+    typeof item.totalTimeSeconds === 'number'
+      ? item.totalTimeSeconds
+      : summary && typeof summary.totalTimeSeconds === 'number'
+        ? summary.totalTimeSeconds
+        : undefined;
 
   return {
     id: typeof item.id === 'string' ? item.id : entId,
     entId,
     name,
     lob,
+    email,
     registeredAt,
     totalTestsAppeared,
     totalScore,
@@ -69,6 +110,8 @@ function normalizeParticipant(value: unknown, index: number): Participant | null
     overallAccuracy,
     isPrizeEligible,
     lastUpdated,
+    completionTime,
+    totalTimeSeconds,
     tests,
     rank: index + 1
   };
@@ -120,4 +163,62 @@ export async function fetchParticipants(): Promise<Participant[]> {
   });
 
   return participants;
+}
+
+export function getSlotUrl(code: string): string {
+  const baseUrl = LEADERBOARD_URL.substring(0, LEADERBOARD_URL.lastIndexOf('/') + 1);
+  return `${baseUrl}${code}.json`;
+}
+
+export async function fetchSlotParticipants(codeOrUrl: string): Promise<Participant[]> {
+  const url = codeOrUrl.startsWith('http') ? codeOrUrl : getSlotUrl(codeOrUrl);
+  try {
+    const response = await fetch(url, {
+      cache: 'no-store'
+    });
+
+    if (!response.ok) {
+      // 404 or other errors mean no entries generated yet for this time slot
+      return [];
+    }
+
+    const data = await response.json();
+    if (!Array.isArray(data)) {
+      return [];
+    }
+
+    const participants = data
+      .map((item, index) => normalizeParticipant(item, index))
+      .filter((p): p is Participant => p !== null);
+
+    participants.sort((a, b) => {
+      if (b.totalScore !== a.totalScore) return b.totalScore - a.totalScore;
+      if (b.overallAccuracy !== a.overallAccuracy) return b.overallAccuracy - a.overallAccuracy;
+      return (a.totalTimeSeconds ?? 999999) - (b.totalTimeSeconds ?? 999999);
+    });
+
+    participants.forEach((participant, index) => {
+      participant.rank = index + 1;
+    });
+
+    return participants;
+  } catch (err) {
+    console.warn(`Failed to fetch slot from ${url}:`, err);
+    return [];
+  }
+}
+
+export async function fetchAllSlotsParallel(): Promise<Record<string, Participant[]>> {
+  const promises = TIME_SLOTS.map(async (slot) => {
+    const code = slot.replace(':', '');
+    const participants = await fetchSlotParticipants(code);
+    return { slot, participants };
+  });
+
+  const results = await Promise.all(promises);
+  const slotMap: Record<string, Participant[]> = {};
+  for (const { slot, participants } of results) {
+    slotMap[slot] = participants;
+  }
+  return slotMap;
 }

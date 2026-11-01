@@ -1,10 +1,11 @@
 import React, { useState, useEffect, useMemo, useCallback } from 'react';
 import { Participant } from './types';
-import { fetchParticipants } from './services/participants';
+import { fetchParticipants, fetchAllSlotsParallel } from './services/participants';
 import { AttendeeModal } from './components/AttendeeModal';
 import { KPICards } from './components/KPICards';
 import { BoothAnalytics } from './components/BoothAnalytics';
 import { LobBreakdown } from './components/LobBreakdown';
+import { TimeSlotPodiums } from './components/TimeSlotPodiums';
 import { computeKPIs, computeBoothStats, computeLobStats } from './utils/analytics';
 
 const TOTAL_BOOTHS = 4;
@@ -25,7 +26,9 @@ const ini = (name: string): string => {
 
 export const App: React.FC = () => {
   const [participants, setParticipants] = useState<Participant[]>([]);
+  const [slotsData, setSlotsData] = useState<Record<string, Participant[]>>({});
   const [isLoading, setIsLoading] = useState<boolean>(true);
+  const [isLoadingSlots, setIsLoadingSlots] = useState<boolean>(true);
   const [, setDataError] = useState<string | null>(null);
   const [clock, setClock] = useState<string>(() => new Date().toLocaleTimeString());
   const [filterQuery, setFilterQuery] = useState<string>('');
@@ -41,29 +44,37 @@ export const App: React.FC = () => {
     return () => clearInterval(timer);
   }, []);
 
-  // Fetch participants
+  // Fetch participants and all time slots in parallel
   const loadParticipants = useCallback(async () => {
     setIsLoading(true);
+    setIsLoadingSlots(true);
     try {
-      const data = await fetchParticipants();
-      setParticipants(data);
+      const [leaderboardData, slotsResult] = await Promise.all([
+        fetchParticipants().catch((err) => {
+          console.warn('Failed to fetch leaderboard:', err);
+          return [];
+        }),
+        fetchAllSlotsParallel().catch((err) => {
+          console.warn('Failed to fetch slots parallel:', err);
+          return {};
+        })
+      ]);
+
+      setParticipants(leaderboardData);
+      setSlotsData(slotsResult);
       setDataError(null);
     } catch (error) {
-      console.error('Failed to load participants:', error);
+      console.error('Failed to load participants and slots:', error);
       setDataError(error instanceof Error ? error.message : 'Failed to load');
     } finally {
       setIsLoading(false);
+      setIsLoadingSlots(false);
     }
   }, []);
 
   useEffect(() => {
     void loadParticipants();
   }, [loadParticipants]);
-
-  // Top 3 contenders
-  const p1 = participants[0];
-  const p2 = participants[1];
-  const p3 = participants[2];
 
   // Overview stats
   const totalContenders = participants.length;
@@ -74,23 +85,17 @@ export const App: React.FC = () => {
     [participants]
   );
 
-  // Contenders starting from rank 4
-  const restWithRanks = useMemo(() => {
-    return participants.slice(3).map((p, idx) => ({
-      ...p,
-      rank: idx + 4
-    }));
-  }, [participants]);
-
-  // Filtered leaderboard contenders
-  const filteredRest = useMemo(() => {
-    return restWithRanks.filter((p) => {
-      const matchesSearch = p.name.toLowerCase().includes(filterQuery.toLowerCase()) ||
-        p.lob.toLowerCase().includes(filterQuery.toLowerCase());
+  // Filtered leaderboard contenders (all participants with rank)
+  const filteredParticipants = useMemo(() => {
+    return participants.filter((p) => {
+      const matchesSearch =
+        p.name.toLowerCase().includes(filterQuery.toLowerCase()) ||
+        p.lob.toLowerCase().includes(filterQuery.toLowerCase()) ||
+        (p.entId && p.entId.toLowerCase().includes(filterQuery.toLowerCase()));
       const matchesPrize = !filterPrizeOnly || (p.totalTestsAppeared >= TOTAL_BOOTHS || p.isPrizeEligible);
       return matchesSearch && matchesPrize;
     });
-  }, [restWithRanks, filterQuery, filterPrizeOnly]);
+  }, [participants, filterQuery, filterPrizeOnly]);
 
   // Analytics helpers
   const kpis = useMemo(() => computeKPIs(participants), [participants]);
@@ -123,8 +128,8 @@ export const App: React.FC = () => {
           <i className="sep"></i>
           <button
             onClick={() => void loadParticipants()}
-            className={`sync-btn ${isLoading ? 'spinning' : ''}`}
-            title="Refresh Leaderboard"
+            className={`sync-btn ${isLoading || isLoadingSlots ? 'spinning' : ''}`}
+            title="Refresh Leaderboard & Time Slots"
           >
             <span className="red">⟳</span>
             <span>Sync</span>
@@ -146,195 +151,108 @@ export const App: React.FC = () => {
         </div>
       </div>
 
-      {/* ── HERO PODIUM & OVERVIEW ── */}
-      <section className="hero">
-        <div className="glow-top"></div>
-        <div className="glow-cyan"></div>
-        <div className="glow-floor"></div>
-        <div className="ring"></div>
-
-        {/* Confetti decorations */}
-        <span className="conf" style={{ top: 70, left: '38%', width: 16, height: 6, background: '#fbbf24', ['--r' as any]: '-30deg' }}></span>
-        <span className="conf" style={{ top: 80, left: '62%', width: 6, height: 14, background: '#f59e0b', ['--r' as any]: '20deg', animationDelay: '.5s' }}></span>
-        <span className="conf" style={{ top: 30, left: '68%', width: 6, height: 12, background: '#fde047', ['--r' as any]: '45deg', animationDelay: '1s' }}></span>
-        <span className="conf" style={{ top: 150, left: '1%', width: 18, height: 5, background: '#fbbf24', ['--r' as any]: '-15deg', animationDelay: '.8s' }}></span>
+      {/* ── CONTEST OVERVIEW HEADER (LIGHT THEME) ── */}
+      <div
+        style={{
+          display: 'grid',
+          gridTemplateColumns: 'minmax(250px, 1.4fr) repeat(auto-fit, minmax(160px, 1fr))',
+          gap: 12,
+          marginBottom: 18,
+          alignItems: 'stretch'
+        }}
+      >
         <div
           style={{
-            position: 'absolute',
-            top: 100,
-            right: '25%',
-            width: 26,
-            height: 18,
-            border: '3px solid #f59e0b',
-            borderTop: 0,
-            borderRight: 0,
-            borderRadius: '0 0 0 18px',
-            transform: 'rotate(-30deg)',
-            opacity: 0.8
+            background: '#ffffff',
+            border: '1px solid #e2e8f0',
+            borderRadius: 16,
+            padding: '16px 20px',
+            display: 'flex',
+            alignItems: 'center',
+            gap: 14,
+            boxShadow: '0 4px 16px rgba(99, 102, 241, 0.08)'
           }}
-        ></div>
-
-        <div className="grid">
-          {/* Brand Col */}
-          <div className="brand">
-            <div className="trophy">
-              <svg width="64" height="64" viewBox="0 0 24 24" fill="none" stroke="#facc15" strokeWidth="1.5" strokeLinejoin="round">
-                <path fill="rgba(250,204,21,.25)" d="M7 4h10v5a5 5 0 0 1-10 0z" />
-                <path d="M7 6H4v2a3 3 0 0 0 3 3M17 6h3v2a3 3 0 0 1-3 3M12 14v4M8 21h8M9 18h6v3H9z" />
-              </svg>
-            </div>
-            <div className="kick">WELLS FARGO INNOVATION SHOWCASE</div>
-            <h2>Top Contenders <em>Podium</em></h2>
-            <p>Innovation. Skill. Excellence.</p>
-            <div className="line"></div>
+        >
+          <div
+            style={{
+              width: 48,
+              height: 48,
+              borderRadius: 14,
+              background: 'linear-gradient(135deg, #fef3c7, #fde68a)',
+              border: '1.5px solid #f59e0b',
+              display: 'flex',
+              alignItems: 'center',
+              justifyContent: 'center',
+              flexShrink: 0,
+              boxShadow: '0 4px 12px rgba(245, 158, 11, 0.2)'
+            }}
+          >
+            <svg width="26" height="26" viewBox="0 0 24 24" fill="none" stroke="#d97706" strokeWidth="1.8">
+              <path fill="#fef08a" d="M7 4h10v5a5 5 0 0 1-10 0z" />
+              <path d="M7 6H4v2a3 3 0 0 0 3 3M17 6h3v2a3 3 0 0 1-3 3M12 14v4M8 21h8M9 18h6v3H9z" />
+            </svg>
           </div>
-
-          {/* Podium Col */}
-          <div className="podium">
-            {/* 2nd Place */}
-            <div
-              className="col s2 cl"
-              id="pod2"
-              onClick={() => p2 && setSelectedParticipant(p2)}
-              title={p2 ? `View details for ${p2.name}` : ''}
-            >
-              <div className="av">
-                <div className="c c2">
-                  <i data-i="2">{p2 ? ini(p2.name) : '--'}</i>
-                </div>
-                <span className="tag tag2">#2</span>
-              </div>
-              <div className="ped p2">
-                <div>
-                  <div className="nm" data-n="2">{p2 ? p2.name : 'Awaiting Contender'}</div>
-                  <div className="pts" data-p="2">{p2 ? `${p2.totalScore} pts` : '--'}</div>
-                  <div className="sub" data-s="2">
-                    {p2 ? `${p2.totalTestsAppeared} Booths • ${p2.overallAccuracy}% Acc` : ''}
-                  </div>
-                </div>
-                <div className="plaque pl2">🏆 2ND PLACE</div>
-              </div>
-              <div className="base b2"></div>
+          <div>
+            <div style={{ fontSize: '0.64rem', fontWeight: 800, color: '#b45309', letterSpacing: '0.06em' }}>
+              WELLS FARGO INNOVATION SHOWCASE
             </div>
-
-            {/* 1st Place */}
-            <div
-              className="col cl cl1"
-              id="pod1"
-              onClick={() => p1 && setSelectedParticipant(p1)}
-              title={p1 ? `View details for ${p1.name}` : ''}
-            >
-              <div className="crown">
-                <svg width="34" height="30" viewBox="0 0 24 24" fill="#facc15" stroke="#fef08a" strokeWidth="1.5" strokeLinejoin="round">
-                  <path d="M2 19 4 7l5 5 3-8 3 8 5-5 2 12z" />
-                </svg>
-              </div>
-              <div className="av">
-                <div className="c c1">
-                  <i data-i="1">{p1 ? ini(p1.name) : '--'}</i>
-                </div>
-                <span className="tag tag1">#1 • 1ST</span>
-              </div>
-              <div className="ped p1">
-                <div>
-                  <div className="nm" data-n="1" style={{ fontSize: '0.96rem' }}>
-                    {p1 ? p1.name : 'Awaiting Winner'}
-                  </div>
-                  <div className="big" data-p="1">
-                    {p1 ? `${p1.totalScore} Points` : '--'}
-                  </div>
-                  <div className="sub" data-s="1" style={{ color: '#fde68a', fontWeight: 600 }}>
-                    {p1 ? `${p1.totalTestsAppeared} Booths • ${p1.overallAccuracy}% Acc` : ''}
-                  </div>
-                </div>
-                <div className="plaque pl1">★ 1ST PLACE ★</div>
-              </div>
-              <div className="base b1"></div>
+            <div style={{ fontSize: '1.2rem', fontWeight: 900, color: '#0f172a', lineHeight: 1.2 }}>
+              Contestant Standings &amp; Podiums
             </div>
-
-            {/* 3rd Place */}
-            <div
-              className="col s3 cl"
-              id="pod3"
-              onClick={() => p3 && setSelectedParticipant(p3)}
-              title={p3 ? `View details for ${p3.name}` : ''}
-            >
-              <div className="av">
-                <div className="c c3">
-                  <i data-i="3">{p3 ? ini(p3.name) : '--'}</i>
-                </div>
-                <span className="tag tag3">#3</span>
-              </div>
-              <div className="ped p3">
-                <div>
-                  <div className="nm" data-n="3">{p3 ? p3.name : 'Awaiting Contender'}</div>
-                  <div className="pts" data-p="3">{p3 ? `${p3.totalScore} pts` : '--'}</div>
-                  <div className="sub" data-s="3">
-                    {p3 ? `${p3.totalTestsAppeared} Booths • ${p3.overallAccuracy}% Acc` : ''}
-                  </div>
-                </div>
-                <div className="plaque pl3">🏆 3RD PLACE</div>
-              </div>
-              <div className="base b3"></div>
-            </div>
-          </div>
-
-          {/* Overview Col */}
-          <div className="ov">
-            <h3>
-              <b>
-                <svg width="13" height="13" viewBox="0 0 24 24" fill="none" stroke="#fff" strokeWidth="2.5" strokeLinecap="round">
-                  <rect x="3" y="12" width="4" height="9" rx="1" />
-                  <rect x="10" y="5" width="4" height="16" rx="1" />
-                  <rect x="17" y="9" width="4" height="12" rx="1" />
-                </svg>
-              </b>
-              Contest Overview
-            </h3>
-
-            <div className="st">
-              <div className="ic" style={{ background: 'rgba(168,85,247,.2)', border: '1px solid rgba(168,85,247,.4)' }}>
-                <svg width="18" height="18" viewBox="0 0 24 24" fill="#c084fc">
-                  <circle cx="9" cy="8" r="3.5" />
-                  <path d="M2 20c0-4 3-6 7-6s7 2 7 6z" />
-                  <circle cx="17" cy="9" r="2.5" />
-                </svg>
-              </div>
-              <div>
-                <strong id="ovTotal">{totalContenders}</strong>
-                <small>Total Contenders</small>
-              </div>
-            </div>
-
-            <div className="st">
-              <div className="ic" style={{ background: 'rgba(59,130,246,.2)', border: '1px solid rgba(59,130,246,.4)' }}>
-                <svg width="18" height="18" viewBox="0 0 24 24" fill="#60a5fa">
-                  <path d="M3 9 5 4h14l2 5v2H3zM5 12h14v8H5z" />
-                </svg>
-              </div>
-              <div>
-                <strong id="ovBooths">{maxBooths}</strong>
-                <small>Booths Visited</small>
-              </div>
-            </div>
-
-            <div className="st">
-              <div className="ic" style={{ background: 'rgba(34,197,94,.2)', border: '1px solid rgba(34,197,94,.4)' }}>
-                <svg width="18" height="18" viewBox="0 0 24 24" fill="none" stroke="#4ade80" strokeWidth="2.2" strokeLinecap="round">
-                  <circle cx="12" cy="12" r="8" />
-                  <circle cx="12" cy="12" r="3" />
-                </svg>
-              </div>
-              <div>
-                <strong id="ovAcc">{topAccuracy}%</strong>
-                <small>Top Accuracy</small>
-              </div>
-            </div>
+            <p style={{ margin: '3px 0 0', fontSize: '0.78rem', color: '#475569', fontWeight: 500 }}>
+              Innovation. Skill. Excellence.
+            </p>
           </div>
         </div>
-      </section>
 
-      {/* ── LEADERBOARD TABLE (RANKS 4+) ── */}
+        <div className="st" style={{ margin: 0, padding: '14px 16px', borderRadius: 16, background: '#ffffff', border: '1px solid #e2e8f0', boxShadow: '0 4px 16px rgba(99, 102, 241, 0.08)' }}>
+          <div className="ic" style={{ background: '#f3e8ff', border: '1px solid #d8b4fe' }}>
+            <svg width="18" height="18" viewBox="0 0 24 24" fill="#7c3aed">
+              <circle cx="9" cy="8" r="3.5" />
+              <path d="M2 20c0-4 3-6 7-6s7 2 7 6z" />
+              <circle cx="17" cy="9" r="2.5" />
+            </svg>
+          </div>
+          <div>
+            <strong id="ovTotal" style={{ color: '#0f172a', fontSize: '1.25rem', fontWeight: 800 }}>{totalContenders}</strong>
+            <small style={{ color: '#475569', fontSize: '0.74rem', fontWeight: 600 }}>Total Contenders</small>
+          </div>
+        </div>
+
+        <div className="st" style={{ margin: 0, padding: '14px 16px', borderRadius: 16, background: '#ffffff', border: '1px solid #e2e8f0', boxShadow: '0 4px 16px rgba(99, 102, 241, 0.08)' }}>
+          <div className="ic" style={{ background: '#dbeafe', border: '1px solid #93c5fd' }}>
+            <svg width="18" height="18" viewBox="0 0 24 24" fill="#2563eb">
+              <path d="M3 9 5 4h14l2 5v2H3zM5 12h14v8H5z" />
+            </svg>
+          </div>
+          <div>
+            <strong id="ovBooths" style={{ color: '#0f172a', fontSize: '1.25rem', fontWeight: 800 }}>{maxBooths} / {TOTAL_BOOTHS}</strong>
+            <small style={{ color: '#475569', fontSize: '0.74rem', fontWeight: 600 }}>Max Booths Visited</small>
+          </div>
+        </div>
+
+        <div className="st" style={{ margin: 0, padding: '14px 16px', borderRadius: 16, background: '#ffffff', border: '1px solid #e2e8f0', boxShadow: '0 4px 16px rgba(99, 102, 241, 0.08)' }}>
+          <div className="ic" style={{ background: '#dcfce7', border: '1px solid #86efac' }}>
+            <svg width="18" height="18" viewBox="0 0 24 24" fill="none" stroke="#16a34a" strokeWidth="2.4" strokeLinecap="round">
+              <circle cx="12" cy="12" r="8" />
+              <circle cx="12" cy="12" r="3" />
+            </svg>
+          </div>
+          <div>
+            <strong id="ovAcc" style={{ color: '#0f172a', fontSize: '1.25rem', fontWeight: 800 }}>{topAccuracy}%</strong>
+            <small style={{ color: '#475569', fontSize: '0.74rem', fontWeight: 600 }}>Top Accuracy</small>
+          </div>
+        </div>
+      </div>
+
+      {/* ── TIME-SLOT COLLAPSIBLE PODIUMS (10:00 - 18:00) ── */}
+      <TimeSlotPodiums
+        slotsData={slotsData}
+        isLoading={isLoadingSlots}
+        onSelectParticipant={setSelectedParticipant}
+      />
+
+      {/* ── OVERALL LEADERBOARD TABLE ── */}
       <section className="lb">
         <div className="lbh">
           <svg width="30" height="30" viewBox="0 0 24 24" fill="#7c3aed">
@@ -343,11 +261,10 @@ export const App: React.FC = () => {
             <rect x="17" y="9" width="4" height="12" rx="1" />
           </svg>
           <div>
-            <h3>Leaderboard Contenders</h3>
+            <h3>Overall Leaderboard Standings</h3>
             <small>
-              Ranks 4 – {Math.min(15, participants.length)} •{' '}
-              <span className="dot" style={{ width: 7, height: 7 }}></span>{' '}
-              <span id="activeCt">{filteredRest.length}</span> active
+              All Attendees • <span className="dot" style={{ width: 7, height: 7 }}></span>{' '}
+              <span id="activeCt">{filteredParticipants.length}</span> active
             </small>
           </div>
 
@@ -358,7 +275,7 @@ export const App: React.FC = () => {
             </svg>
             <input
               id="filter"
-              placeholder="Filter names..."
+              placeholder="Filter names or LOB..."
               value={filterQuery}
               onChange={(e) => setFilterQuery(e.target.value)}
             />
@@ -383,20 +300,31 @@ export const App: React.FC = () => {
         </div>
 
         <div id="rows">
-          {filteredRest.map((p) => {
-            const c = pastel[(p.rank - 4) % pastel.length];
+          {filteredParticipants.map((p, idx) => {
+            const rank = p.rank || idx + 1;
+            const c = pastel[(rank - 1) % pastel.length];
             const cls = p.totalScore >= 3 ? 'hi' : p.totalScore > 0 ? 'lo' : 'z';
-            const isRank4 = p.rank === 4;
+            const isRank1 = rank === 1;
+            const isRank2 = rank === 2;
+            const isRank3 = rank === 3;
 
             return (
               <div
-                key={p.entId || p.name + p.rank}
+                key={p.entId || p.name + rank}
                 className="row"
                 onClick={() => setSelectedParticipant(p)}
                 title={`Click to view deep dive for ${p.name}`}
               >
                 <span>
-                  <span className="rk">#{p.rank}</span>
+                  <span
+                    className="rk"
+                    style={{
+                      color: isRank1 ? '#facc15' : isRank2 ? '#c7d2fe' : isRank3 ? '#fdba74' : undefined,
+                      fontWeight: rank <= 3 ? 900 : 700
+                    }}
+                  >
+                    #{rank} {isRank1 ? '🥇' : isRank2 ? '🥈' : isRank3 ? '🥉' : ''}
+                  </span>
                 </span>
                 <div className="who">
                   <div className="a" style={{ background: c[0], color: c[1] }}>
@@ -409,10 +337,9 @@ export const App: React.FC = () => {
                 </div>
                 <div className="ba">
                   <span className="ic">
-                    {isRank4 ? (
-                      <svg width="15" height="15" viewBox="0 0 24 24" fill="none" stroke="#2563eb" strokeWidth="2.5" strokeLinecap="round">
-                        <circle cx="12" cy="12" r="9" />
-                        <path d="M12 7v5l3 2" />
+                    {rank <= 3 ? (
+                      <svg width="15" height="15" viewBox="0 0 24 24" fill="#2563eb">
+                        <path d="M12 2l3.09 6.26L22 9.27l-5 4.87 1.18 6.88L12 17.77l-6.18 3.25L7 14.14 2 9.27l6.91-1.01L12 2z" />
                       </svg>
                     ) : (
                       <svg width="16" height="16" viewBox="0 0 24 24" fill="#2563eb">
@@ -433,7 +360,7 @@ export const App: React.FC = () => {
             );
           })}
 
-          {filteredRest.length === 0 && (
+          {filteredParticipants.length === 0 && (
             <div style={{ textAlign: 'center', padding: '24px 0', color: '#64748B', fontSize: '0.85rem' }}>
               No contenders match your search filter.
             </div>
@@ -442,11 +369,11 @@ export const App: React.FC = () => {
 
         <div className="foot">
           <svg width="16" height="16" viewBox="0 0 24 24" fill="#2563eb">
-            <circle cx="12" cy="12" r="10" />
+            <circle cx="12" cy="10" r="10" />
             <path d="M12 11v6M12 7v1" stroke="#fff" strokeWidth="2.5" strokeLinecap="round" />
           </svg>
           <span id="showing">
-            Showing ranks 4 through {Math.min(filteredRest.length + 3, participants.length)} of {participants.length}
+            Showing {filteredParticipants.length} of {participants.length} Contenders
           </span>
           <div className="q">⭐ 4 booths to qualify for Prize Drawing</div>
         </div>

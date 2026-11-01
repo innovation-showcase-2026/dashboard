@@ -586,14 +586,16 @@ body {
 
 .st strong {
   display: block;
-  font-size: 1.1rem;
+  font-size: 1.15rem;
   font-weight: 800;
   line-height: 1.1;
+  color: #0f172a;
 }
 
 .st small {
-  font-size: 0.7rem;
-  color: #a5b4d0;
+  font-size: 0.72rem;
+  color: #475569;
+  font-weight: 600;
 }
 
 /* leaderboard */
